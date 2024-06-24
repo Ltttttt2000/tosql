@@ -1,13 +1,27 @@
 '''
 从飞书导出数据调研表后读取并存入MySQL数据库的过程
 为了方便查询和存储，将中文的信息以英文字母的形式存储（详见mapping）
+
+workflow:
+1. 从飞书导出每个项目经理的数据调研表excel文件
+2. Change path to where the Excel exists
+3. Change skiprows代表从第几行读取（表头）
+4. Open database in cmd: mysql -u root -p
+5. Change connection settings (username, password, port)
+6. Run experiment_clinic.py
+7. Check the database
+
 '''
+
 import pandas as pd
 path = 'C:/Users/Lenovo/Downloads/data.xlsx'
+
+
+print("Start reading the data survey form ... ")
 df = pd.read_excel(path, skiprows=2) # 从第三行读取，第三行是表头
 
 
-''' map '''
+''' mapping '''
 data_type_mapping = {
     '电生理信号数据': 'E',
     '刺激模式数据': 'S',
@@ -24,9 +38,10 @@ record_status_mapping = {
 observational_mapping = {
     '前瞻性队列研究': 'prospective',
     '回顾性队列研究': 'retrospective',
-    '双向队列': 'bidirectional',
+    '双向队列研究': 'bidirectional',
     '病例对照研究': 'case-control',
-    'case-only': 'case-only'
+    'case-only': 'case-only',
+    '横断面研究': 'cross-sectional'
 }
 interventional_mapping = {
     '单臂实验': 'signle-arm',
@@ -34,12 +49,6 @@ interventional_mapping = {
     '交叉设计': 'cross-over',
     '序贯设计': 'sequential',
     '析因设计': 'factorial',
-}
-
-record_way_mapping = {
-    'N/A': 'N',
-    '急性': 'A',
-    '慢性': 'C'
 }
 
 contrast_type_mapping = {
@@ -50,8 +59,8 @@ contrast_type_mapping = {
 }
 
 
-experiment_sql = []
-clinic_sql = []
+experiment_sql = []    # 存储sql语句
+clinic_sql = []   # 存储SQL的values
 # 一行一行的处理excel文件
 for index, row in df.iterrows():
     # print(pd.isna(row['研究类型'])) # 判断是否为nan，在pandas里nan是float类型
@@ -67,8 +76,13 @@ for index, row in df.iterrows():
             data_type = data_type + extend
 
         # print(data_type)
+        # 清醒态还是麻醉态
+        values2 = row['记录状态'].split(',')
+        record_status = ''
+        for j in range(len(values2)):
+            record_status += record_status_mapping.get(values2[j])
 
-        record_status = record_status_mapping.get(row['记录状态'])
+        # record_status = record_status_mapping.get(row['记录状态'])
 
         # 临床实验
         study_type = row['研究类型']
@@ -82,7 +96,7 @@ for index, row in df.iterrows():
         indications = row['适应病症']
 
         # 动物实验
-        record_way = record_way_mapping.get(row['记录方式'])
+        record_way = row['记录方式']
         contrast_type = contrast_type_mapping.get(row['对照类型（如有）'])
 
     # clinic和experiment录入数据库
@@ -101,25 +115,15 @@ for index, row in df.iterrows():
 
         clinic_sql.append(values)
 
-# 录入
-# import mysql.connector
-#
-# conn = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password='ltAb123456@',
-#     database="june"
-# )
-#
-# # 创建一个游标对象来执行SQL语句
-# cursor = conn.cursor()
-# sql = ''
-# cursor.execute(sql)
-#
-# result = cursor.fetchall()
-# print(result)
-# conn.close()
 
+# check the sql before import to database
+print(experiment_sql)
+print(clinic_sql)
+''' 
+two ways to import to sql
+1. store every sql to an array, execute(sql)
+2. store values into an array, use execute(sql, values)
+ '''
 
 import pymysql.cursors
 conn = pymysql.connect(
@@ -128,7 +132,10 @@ conn = pymysql.connect(
     password='ltAb123456@',
     database='june',
 )
+
 cursor = conn.cursor()
+
+''' remove comments while enter database '''
 # for sql in experiment_sql:
 #     cursor.execute(sql)
 
@@ -136,7 +143,10 @@ sql = 'INSERT INTO clinic (project_number, experiment_name, data_type, record_st
 
 for values in clinic_sql:
     print(values)
+    ''' remove comments while enter database '''
     # cursor.execute(sql, values)
 
 conn.commit()
 conn.close()
+
+print("Finished.... Check the database :)")
