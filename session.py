@@ -1,17 +1,20 @@
 """
-把session对应上所有的
+把session对应上所有的文件夹
+以HE04为例子
 
 """
+import json
 from datetime import datetime
 
 import pandas as pd
+from pymysql import NULL
+
 path = 'C:/Users/Lenovo/Downloads/HE04.xlsx'
 
 
 print("Start reading the data survey form ... ")
 df = pd.read_excel(path) # skiprows=2，不需要跳过任何行，第一行就是表头
-
-values = []
+to_sql = []
 for index, row in df.iterrows():
     filename = row['文件名']
     animal_name = row['动物编号']
@@ -30,12 +33,18 @@ for index, row in df.iterrows():
         # print(year, month, day)
 
         t = str(row['开始时间'])
-        # print(t)'
-        start_time = str(year)+'-'+str(month)+'-'+str(day)+' '+t
+        # print(t)''
+        if t != 'nan':
+            start_time = str(year)+'-'+str(month)+'-'+str(day)+' '+t
+        else:
+            start_time = str(year)+'-'+str(month)+'-'+str(day)+' '+ '00:00:00'
         # print(start_time)
 
-
-        duration = row['duration']
+        if str(row['duration']) != 'nan':
+            duration = row['duration']
+        else:
+            duration = None
+        electrodeID = row['使用电极']
 
         '''整理JSON字段'''
 
@@ -43,26 +52,60 @@ for index, row in df.iterrows():
         signal_type = row['信号类型']
         system = row['采集系统']
         sample_rate = row['sample_rate']
-        channel_count = row['channel_count']
-        paradigm = row['范式']
-        electrophysiology_json = {
+        if pd.isna(row['channel_count']) is False:
+            channel_count = int(row['channel_count'])
+        else:
+            channel_count = None
+        paradigm = str(row['范式'])
+        electrophysiology_dic = {
             "signal_type": signal_type,
             "system": system,
             "sample_rate": sample_rate,
             "channel_count": channel_count,
             "paradigm": paradigm
         }
+        # 1. json.dumps(字典)：将字典转为JSON字符串，indent为多行缩进空格数，
+        # sort_keys为是否按键排序,ensure_ascii=False为不确保ascii，及不将中文等特殊字符转为\uXXX等
+        electrophysiology_json = json.dumps(electrophysiology_dic, ensure_ascii=False)
+
 
         if str(row['行为学软件']) != 'nan':
-            software = row['行为学记录软件']
-            behavior_json = {
+            software = row['行为学软件']
+            behavior_dic = {
                 'software': software
             }
+            behavior_json = json.dumps(behavior_dic, ensure_ascii=False)
         else:
-            behavior_json = ''
+            behavior_json = json.dumps('')
 
 
-        path = '/zhangshuai/Rnd_data/' + project_number + '/' + experiment_name + '/' + filename
-        sql = 'INSERT INTO session (start_time, duration, electrophysiology_json, behavior_json) VALUES (%s, %s, %s, %s)'
-        values = (start_time, duration, electrophysiology_json, behavior_json)
+        file_type = row['file_type']
 
+
+        path =  project_number + '/' + experiment_name + '/' + filename
+        values = (electrodeID, start_time, duration, electrophysiology_json, behavior_json, file_type, path, animal_name, project_number, experiment_name)
+        to_sql.append(values)
+
+
+
+import pymysql.cursors
+conn = pymysql.connect(
+    host='localhost',
+    user='root',
+    password='ltAb123456@',
+    database='june',
+)
+
+cursor = conn.cursor()
+cursor.execute('use june;')
+
+sql = 'INSERT INTO session (electrodeID, start_time, duration, electrophysiology_json, behavior_json, file_type, path,animal_name, project_number, experiment_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+for values in to_sql:
+    print(values)
+    ''' remove comments while enter database '''
+    cursor.execute(sql, values)
+
+conn.commit()
+conn.close()
+
+print("Finished.... Check the database :)")
