@@ -15,8 +15,7 @@ workflow:
 
 import pandas as pd
 
-
-path = 'C:/Users/Lenovo/Downloads/NC_2023_HE_05.xlsx'
+path = 'C:/Users/Lenovo/Downloads/NC_2023_C_02.xlsx'
 print("Start reading the data survey form ... ")
 df = pd.read_excel(path, skiprows=0) # 从第三行读取，第三行是表头
 
@@ -35,16 +34,24 @@ record_status_mapping = {
     '清醒-静息态': 'R'
 }
 
-
-contrast_type_mapping = {
-    '无对照': 'N',
-    '同期对照': 'C',
-    '历史对照': 'H',
-    '自身前后对照': 'S'
+observational_mapping = {
+    '前瞻性队列研究': 'prospective',
+    '回顾性队列研究': 'retrospective',
+    '双向队列研究': 'bidirectional',
+    '病例对照研究': 'case-control',
+    'case-only': 'case-only',
+    '横断面研究': 'cross-sectional'
+}
+interventional_mapping = {
+    '单臂实验': 'signle-arm',
+    '平行组': 'parallel',
+    '交叉设计': 'cross-over',
+    '序贯设计': 'sequential',
+    '析因设计': 'factorial',
 }
 
 
-experiment_sql = []    # 存储sql语句values
+clinic_sql = []    # 存储sql语句values
 
 # 一行一行的处理excel文件，全都是选择，不考虑为空的情况
 for index, row in df.iterrows():
@@ -65,20 +72,26 @@ for index, row in df.iterrows():
     for j in range(len(value2)):
         record_status += record_status_mapping.get(value2[j])
 
-    record_way = row['记录方式']
-    contrast_type = contrast_type_mapping.get(row['对照类型（如有）'])
+    study_type = row['研究类型']
+    study_model = ''
+    if row['Study Type'] == 'Observational' and row['Study Type'] != 'nan':
+        study_model = 'O-' + observational_mapping.get(row['观察性研究模型'])
+    elif row['Study Type'] == 'Interventional' and row['Study Type'] != 'nan':
+        study_model = 'I-' + interventional_mapping.get(row['干预性研究模型'])
+
+    record_time = row['记录方式']
 
     notes = None  # 空值
     if pd.isna(row['备注']) is False:
         notes = row['备注']
 
-    values = (project_number, experiment_name, data_type, record_status, record_way, contrast_type, notes)
-    experiment_sql.append(values)
+    values = (project_number, experiment_name, data_type, record_status, study_type, study_model, record_time, notes)
+    clinic_sql.append(values)
 
 
 
 # check the sql before import to database
-print(experiment_sql)
+print(clinic_sql)
 
 ''' 
 two ways to import to sql
@@ -100,10 +113,10 @@ cursor = conn.cursor()
 # for sql in experiment_sql:
 #     cursor.execute(sql)
 
-sql = 'INSERT INTO experiment(project_number, experiment_name, data_type, record_status, record_way, contrast_type, notes) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+sql = 'INSERT INTO clinic (project_number, experiment_name, data_type, record_status, study_type, study_model, record_time, notes) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
 
 
-for values in experiment_sql:
+for values in clinic_sql:
     print(values)
     ''' remove comments while enter database '''
     cursor.execute(sql, values)
