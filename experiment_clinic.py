@@ -19,7 +19,7 @@ path = 'C:/Users/Lenovo/Downloads/data.xlsx'
 
 
 print("Start reading the data survey form ... ")
-df = pd.read_excel(path, skiprows=2) # 从第三行读取，第三行是表头
+df = pd.read_excel(path, skiprows=0) # 从第三行读取，第三行是表头
 
 
 ''' mapping '''
