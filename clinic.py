@@ -15,7 +15,7 @@ workflow:
 
 import pandas as pd
 
-path = 'C:/Users/Lenovo/Downloads/NC_2023_C_02.xlsx'
+path = 'D:\\DATA\\C02\\C02.xlsx'
 print("Start reading the data survey form ... ")
 df = pd.read_excel(path, skiprows=0) # 从第三行读取，第三行是表头
 

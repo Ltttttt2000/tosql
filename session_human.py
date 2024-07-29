@@ -2,7 +2,7 @@
 把session对应上所有的文件夹
 以HE04为例子
 
-表头 项目编号	实验名称	动物ID	文件夹名	电极名称	动物种类	动物品系	动物周龄	动物性别	动物体重	急性/慢性	电极植入日期	植入脑区	植入深度	开始时间	持续时间	采样率	通道量	采集系统	范式	信号类型
+表头 项目编号	实验名称	患者ID	文件夹名	电极名称	姓名	性别	出生年份	病症	 记录状态 电极植入日期	植入脑区	植入深度	开始时间	持续时间	采样率	通道量	采集系统	范式	信号类型
 
 """
 import json
@@ -15,24 +15,23 @@ from pymysql import NULL
 print('请输入该实验所涉及的JSON类型（共5个）：电生理信号采集、行为学、侵入式、刺激、麻醉，若含有该类型为1，不含有为0，例如：10110')
 type = input()
 print(type[0])
-path = 'D:/DATA/HE05/HE05.xlsx'
-
+path = 'D:\\DATA\\C02\\C02.xlsx'
+project_number = 'NC_2023_C_02'
 
 print("Start reading the data survey form ... ")
 df = pd.read_excel(path) # skiprows=2，不需要跳过任何行，第一行就是表头
 to_sql = []
 
 for index, row in df.iterrows():
-    project_number = str(row[('项目编号')])
     experiment_name = str(row['实验名称'])
 
-    animal_name = row['动物ID']
+    animal_name = row['患者ID']
 
     filename = str(row['文件夹名'])
     electrodeID = row['电极名称']
 
-    if pd.isna(row['急性/慢性']) is False:
-        record_way = row['急性/慢性']
+    if pd.isna(row['记录状态']) is False:
+        record_way = row['记录状态']
     else: record_way = None
 
     if pd.isna(row['开始时间']) is False:
@@ -47,28 +46,6 @@ for index, row in df.iterrows():
 
     electrodeID = row['电极名称']
 
-
-
-    # '''对时间的一些处理'''
-    # if str(row['开始日期']) != 'nan':
-    #
-    #     year = str(int(row['开始日期']))[0:4]
-    #     month = str(int(row['开始日期']))[4:6]
-    #     day = str(int(row['开始日期']))[6:8]
-    #     # print(year, month, day)
-    #
-    #     t = str(row['开始时间'])
-    #     # print(t)''
-    #     if t != 'nan':
-    #         start_time = str(year)+'-'+str(month)+'-'+str(day)+' '+t
-    #     else:
-    #         start_time = str(year)+'-'+str(month)+'-'+str(day)+' '+ '00:00:00'
-    #     # print(start_time)
-    #
-    #     if str(row['duration']) != 'nan':
-    #         duration = row['duration']
-    #     else:
-    #         duration = None
 
     '''电生理信号采集实验'''
     if type[0] == '1':
@@ -157,7 +134,7 @@ for index, row in df.iterrows():
 
 
     path = project_number + '/' + experiment_name + '/' + filename
-    # print(project_number, experiment_name, electrodeID, start_time, duration, record_way, electrophysiology_json, behavior_json, stimus_json, invasive_json, others_json, path, animal_name)
+    print(project_number, experiment_name, electrodeID, start_time, duration, record_way, electrophysiology_json, behavior_json, stimus_json, invasive_json, others_json, path, animal_name)
 
 
 
@@ -167,24 +144,24 @@ for index, row in df.iterrows():
 
 
 
-import pymysql.cursors
-conn = pymysql.connect(
-    host='localhost',
-    user='root',
-    password='ltAb123456@',
-    database='june',
-)
-
-cursor = conn.cursor()
-cursor.execute('use june;')
-
-sql = 'INSERT INTO session (project_number, experiment_name, electrodeID, start_time, duration, record_way, electrophysiology_json, behavior_json, stimus_json, invasive_json, others_json, path, animal_name)  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-for values in to_sql:
-    print(values)
-    ''' remove comments while enter database '''
-    cursor.execute(sql, values)
-
-conn.commit()
-conn.close()
-
-print("Finished.... Check the database :)")
+# import pymysql.cursors
+# conn = pymysql.connect(
+#     host='localhost',
+#     user='root',
+#     password='ltAb123456@',
+#     database='june',
+# )
+#
+# cursor = conn.cursor()
+# cursor.execute('use june;')
+#
+# sql = 'INSERT INTO session (project_number, experiment_name, electrodeID, start_time, duration, record_way, electrophysiology_json, behavior_json, stimus_json, invasive_json, others_json, path, animal_name)  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+# for values in to_sql:
+#     print(values)
+#     ''' remove comments while enter database '''
+#     cursor.execute(sql, values)
+#
+# conn.commit()
+# conn.close()
+#
+# print("Finished.... Check the database :)")
