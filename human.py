@@ -19,8 +19,10 @@ to_sql = []
 for index, row in df.iterrows():
     name = str(row['患者ID'])
     year_of_birth = None
+
+    '''对出生年份进行时间漂移法，统一+5'''
     if pd.isna(row['出生年份']) is False:
-        year_of_birth = int(row['出生年份'])
+        year_of_birth = int(row['出生年份']) + 5
     gender = None
     if pd.isna(row['性别']) is False:
         gender = row['性别']
@@ -39,29 +41,29 @@ for index, row in df.iterrows():
         to_sql.append(values)
 
 
-print(to_sql)
-print(len(to_sql))
-for human in to_sql:
-    print(human)
+# print(to_sql)
+# print(len(to_sql))
+# for human in to_sql:
+#     print(human)
 
-# import pymysql.cursors
-# conn = pymysql.connect(
-#     host='localhost',
-#     user='root',
-#     password='ltAb123456@',
-#     database='june',
-# )
-#
-# cursor = conn.cursor()
-# cursor.execute('use june;')
-#
-# sql = 'INSERT INTO human (name, year_of_birth, gender, indication, file_type, path) VALUES (%s, %s, %s, %s, %s, %s)'
-# for values in to_sql:
-#     print(values)
-#     ''' remove comments while enter database '''
-#     cursor.execute(sql, values)
-#
-# conn.commit()
-# conn.close()
-#
-# print("Finished.... Check the database :)")
+import pymysql.cursors
+conn = pymysql.connect(
+    host='localhost',
+    user='root',
+    password='ltAb123456@',
+    database='june',
+)
+
+cursor = conn.cursor()
+cursor.execute('use june;')
+
+sql = 'INSERT INTO human (name, year_of_birth, gender, indication, file_type, path) VALUES (%s, %s, %s, %s, %s, %s)'
+for values in to_sql:
+    print(values)
+    ''' remove comments while enter database '''
+    cursor.execute(sql, values)
+
+conn.commit()
+conn.close()
+
+print("Finished.... Check the database :)")

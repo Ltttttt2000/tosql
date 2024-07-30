@@ -18,7 +18,8 @@
 
 若为动物实验运行animal.py录入animal表
 
-若为临床实验运行human.py录入human表
+若为临床实验运行human.py录入human表 （其中临床信息需要对出生年份进行加密，使用时间漂移法统一+5）
+
 
 ## Step 3： 录入session信息
 
