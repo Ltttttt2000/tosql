@@ -15,7 +15,7 @@ workflow:
 
 import pandas as pd
 
-path = 'D:\\DATA\\C02\\C02.xlsx'
+path = r'C:\Users\Lenovo\Downloads\NC_2023_C_02_数据调研表.xlsx'
 print("Start reading the data survey form ... ")
 df = pd.read_excel(path, skiprows=0) # 从第三行读取，第三行是表头
 
@@ -59,6 +59,8 @@ for index, row in df.iterrows():
     project_number = row['项目编号'].strip()
     experiment_name = row['实验名称'].strip()
 
+    aim = row['实验目的'].strip()
+
     # 多选：实验数据类型
     value = row['实验数据类型'].split(',')
     data_type = ''
@@ -85,7 +87,9 @@ for index, row in df.iterrows():
     if pd.isna(row['备注']) is False:
         notes = row['备注']
 
-    values = (project_number, experiment_name, data_type, record_status, study_type, study_model, record_time, notes)
+    has_code = row['是否涉及数据处理']
+
+    values = (project_number, experiment_name, aim, data_type, record_status, study_type, study_model, record_time, notes, has_code)
     clinic_sql.append(values)
 
 
@@ -104,7 +108,7 @@ conn = pymysql.connect(
     host='localhost',
     user='root',
     password='ltAb123456@',
-    database='june',
+    database='august',
 )
 
 cursor = conn.cursor()
@@ -113,7 +117,7 @@ cursor = conn.cursor()
 # for sql in experiment_sql:
 #     cursor.execute(sql)
 
-sql = 'INSERT INTO clinic (project_number, experiment_name, data_type, record_status, study_type, study_model, record_time, notes) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+sql = 'INSERT INTO clinic (project_number, experiment_name, aim, data_type, record_status, study_type, study_model, record_time, notes, has_code) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
 
 
 for values in clinic_sql:

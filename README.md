@@ -1,5 +1,5 @@
 
-## MySQL元数据入库Workflow
+# MySQL元数据入库Workflow
 
 飞书导出数据调研表为Excel
 
@@ -24,15 +24,14 @@
 ## Step 3： 录入session信息
 
 运行session.py录入session
-
-根据该实验所涉及的数据填写：'请输入该实验所涉及的JSON类型（共5个）：电生理信号采集、行为学、侵入式、刺激、麻醉，若含有该类型为1，不含有为0，例如：10110'
+(human_session.py/ animal_session.py)
 
 ## Step 4: 补充relation
 
 运行fill_session.sql
 
 ```sql
-use june;
+use august;
 
 -- 动物实验
 -- 通过项目编号和实验名称对应上 --
@@ -68,3 +67,9 @@ ALTER TABLE `tablename` AUTO_INCREMENT=0;
 ALTER TABLE your_table AUTO_INCREMENT = 1;
 
 ```
+
+
+
+# 数据库的统计信息
+
+运行monthly_update.py

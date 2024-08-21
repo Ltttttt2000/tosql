@@ -2,7 +2,7 @@ import pandas as pd
 
 
 
-path = 'D:\\DATA\\C02\\C02.xlsx'
+path = r'D:\DATA\NC_2023_C_02.xlsx'
 projectID = 'NC_2023_C_02'
 
 print("Start reading the data survey form ... ")
@@ -41,21 +41,21 @@ for index, row in df.iterrows():
         to_sql.append(values)
 
 
-# print(to_sql)
-# print(len(to_sql))
-# for human in to_sql:
-#     print(human)
+print(to_sql)
+print(len(to_sql))
+for human in to_sql:
+    print(human)
 
 import pymysql.cursors
 conn = pymysql.connect(
     host='localhost',
     user='root',
     password='ltAb123456@',
-    database='june',
+    database='august',
 )
 
 cursor = conn.cursor()
-cursor.execute('use june;')
+# cursor.execute('use august;')
 
 sql = 'INSERT INTO human (name, year_of_birth, gender, indication, file_type, path) VALUES (%s, %s, %s, %s, %s, %s)'
 for values in to_sql:

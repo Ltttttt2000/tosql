@@ -16,9 +16,13 @@ workflow:
 import pandas as pd
 
 
-path = 'C:/Users/Lenovo/Downloads/NC_2023_HE_05.xlsx'
+path = r'C:\Users\Lenovo\Downloads\NC_2023_HE_04_数据调研表.xlsx'
 print("Start reading the data survey form ... ")
-df = pd.read_excel(path, skiprows=0) # 从第三行读取，第三行是表头
+dtype = {
+    '实验目的': str
+}
+
+df = pd.read_excel(path, skiprows=0, dtype=dtype) # 从第三行读取，第三行是表头
 
 
 ''' mapping '''
@@ -54,6 +58,7 @@ for index, row in df.iterrows():
 
     # 多选：实验数据类型
     value = row['实验数据类型'].split(',')
+    aim = row['实验目的'] if not pd.isna(row['实验目的']) else None
     data_type = ''
     for i in range(len(value)):
         extend = data_type_mapping.get(value[i])
@@ -71,8 +76,9 @@ for index, row in df.iterrows():
     notes = None  # 空值
     if pd.isna(row['备注']) is False:
         notes = row['备注']
+    has_code = row['是否涉及数据处理']
 
-    values = (project_number, experiment_name, data_type, record_status, record_way, contrast_type, notes)
+    values = (project_number, experiment_name, aim, data_type, record_status, record_way, contrast_type, notes, has_code)
     experiment_sql.append(values)
 
 
@@ -91,7 +97,7 @@ conn = pymysql.connect(
     host='localhost',
     user='root',
     password='ltAb123456@',
-    database='june',
+    database='august',
 )
 
 cursor = conn.cursor()
@@ -100,7 +106,7 @@ cursor = conn.cursor()
 # for sql in experiment_sql:
 #     cursor.execute(sql)
 
-sql = 'INSERT INTO experiment(project_number, experiment_name, data_type, record_status, record_way, contrast_type, notes) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+sql = 'INSERT INTO experiment(project_number, experiment_name, aim, data_type, record_status, record_way, contrast_type, notes, has_code) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
 
 
 for values in experiment_sql:
