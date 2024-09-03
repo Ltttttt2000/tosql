@@ -18,7 +18,7 @@ experiment_types = ['临床项目', '临床实验个数', '临床实验session�
                     '电生理数据个数', '小鼠实验', '大鼠实验', '猴子实验', 'Spike数据', 'ECoG数据']
 counts = []
 
-data_type = ['动物ECoG', '动物Spike', '临床ECoG']
+data_type = ['动物Spike', '临床ECoG']  # 删除了ECoG
 data_type_counts = []
 
 
@@ -101,7 +101,7 @@ cursor.execute("select count(sessionID) AS '动物ECoG数据' from session where
 result = cursor.fetchall()[0][0]
 name = cursor.description[0][0]
 print(name + ": ", result)
-data_type_counts.append(result)
+# data_type_counts.append(result)
 
 cursor.execute("select count(sessionID) AS '动物Spike数据' from session where signal_type='Spike' and experimentID IS NOT NULL;")
 result = cursor.fetchall()[0][0]
@@ -145,6 +145,7 @@ plt.show()
 
 # plt.bar(data_type, data_type_counts)
 fig, ax = plt.subplots()   # figsize=(10, 6)
+
 bar_container = ax.bar(data_type, data_type_counts)
 
 # 在柱状图上添加数值
